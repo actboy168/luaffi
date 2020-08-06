@@ -1,0 +1,78 @@
+local lm = require "luamake"
+
+lm:shared_library 'lua54' {
+    sources = {
+        "lua/*.c",
+        "!lua/testes/*.c",
+        "!lua/ltests.c",
+        "!lua/onelua.c",
+        "!lua/lua.c",
+    },
+    defines = {
+        "_WIN32_WINNT=0x0601",
+        "LUA_BUILD_AS_DLL",
+    }
+}
+
+lm:executable 'lua' {
+    deps = "lua54",
+    defines = {
+        "_WIN32_WINNT=0x0601",
+    },
+    sources = {
+        "lua/lua.c",
+    },
+}
+
+local function dynasm(output, input, flags)
+    lm:build ("dynasm_"..output) {
+        "$luamake", "lua", "src/dynasm/dynasm.lua",
+        "-LNE",
+        flags or {},
+        "-o", "src/"..output,
+        "src/"..input,
+        output = "src/"..output,
+    }
+end
+
+dynasm('call_x86.h', 'call_x86.dasc', {'-D', 'X32WIN'})
+dynasm('call_x64.h', 'call_x86.dasc', {'-D', 'X64'})
+dynasm('call_x64win.h', 'call_x86.dasc', {'-D', 'X64', '-D', 'X64WIN'})
+dynasm('call_arm.h', 'call_arm.dasc')
+
+lm:phony {
+    input = {
+        "src/call_x86.h",
+        "src/call_x64.h",
+        "src/call_x64win.h",
+        "src/call_arm.h",
+    },
+    output = "src/call.c",
+}
+
+lm:lua_library "ffi" {
+    luaversion = "lua54",
+    sources = {
+        "src/*.c",
+        "!src/test.c",
+    },
+    ldflags = "/EXPORT:luaopen_ffi"
+}
+
+lm:shared_library "ffi_test_cdecl" {
+    sources = {
+        "src/test.c",
+    },
+    defines = {
+        "_CRT_SECURE_NO_WARNINGS",
+    }
+}
+
+lm:build "test" {
+    "$bin/lua.exe", "src/test.lua",
+    deps = {
+        "lua",
+        "ffi",
+        "ffi_test_cdecl",
+    }
+}
