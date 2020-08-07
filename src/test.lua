@@ -32,8 +32,8 @@ end
 
 dlls.__cdecl = loadlib('ffi_test_cdecl')
 if ffi.arch == 'x86' and ffi.os == 'Windows' then
-    --dlls.__stdcall = loadlib('ffi_test_stdcall')
-    --dlls.__fastcall = loadlib('ffi_test_fastcall')
+    dlls.__stdcall = loadlib('ffi_test_stdcall')
+    dlls.__fastcall = loadlib('ffi_test_fastcall')
 end
 
 local function check(a, b, msg)

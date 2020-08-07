@@ -44,6 +44,27 @@ lm:shared_library "ffi_test_cdecl" {
     }
 }
 
+if lm.arch == "x86" then
+    lm:shared_library "ffi_test_stdcall" {
+        sources = {
+            "src/test.c",
+        },
+        defines = {
+            "_CRT_SECURE_NO_WARNINGS",
+        },
+        flags = "/Gz",
+    }
+    lm:shared_library "ffi_test_fastcall" {
+        sources = {
+            "src/test.c",
+        },
+        defines = {
+            "_CRT_SECURE_NO_WARNINGS",
+        },
+        flags = "/Gr",
+    }
+end
+
 local luamake_arch = string.packsize "T" == 8 and "x64" or "x86"
 if lm.arch == luamake_arch then
     lm:build "test" {
@@ -51,6 +72,8 @@ if lm.arch == luamake_arch then
         deps = {
             "ffi",
             "ffi_test_cdecl",
+            lm.arch == "x86" and "ffi_test_stdcall",
+            lm.arch == "x86" and "ffi_test_fastcall",
         }
     }
 else
@@ -82,6 +105,8 @@ else
             "lua",
             "ffi",
             "ffi_test_cdecl",
+            lm.arch == "x86" and "ffi_test_stdcall",
+            lm.arch == "x86" and "ffi_test_fastcall",
         }
     }
 end
