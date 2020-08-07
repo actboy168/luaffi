@@ -1,29 +1,5 @@
 local lm = require "luamake"
 
-lm:shared_library 'lua54' {
-    sources = {
-        "lua/*.c",
-        "!lua/testes/*.c",
-        "!lua/ltests.c",
-        "!lua/onelua.c",
-        "!lua/lua.c",
-    },
-    defines = {
-        "_WIN32_WINNT=0x0601",
-        "LUA_BUILD_AS_DLL",
-    }
-}
-
-lm:executable 'lua' {
-    deps = "lua54",
-    defines = {
-        "_WIN32_WINNT=0x0601",
-    },
-    sources = {
-        "lua/lua.c",
-    },
-}
-
 local function dynasm(output, input, flags)
     lm:build ("dynasm_"..output) {
         "$luamake", "lua", "src/dynasm/dynasm.lua",
@@ -68,11 +44,44 @@ lm:shared_library "ffi_test_cdecl" {
     }
 }
 
-lm:build "test" {
-    "$bin/lua.exe", "src/test.lua",
-    deps = {
-        "lua",
-        "ffi",
-        "ffi_test_cdecl",
+local luamake_arch = string.packsize "T" == 8 and "x64" or "x86"
+if lm.arch == luamake_arch then
+    lm:build "test" {
+        "$luamake", "lua", "test.lua",
+        deps = {
+            "ffi",
+            "ffi_test_cdecl",
+        }
     }
-}
+else
+    lm:shared_library 'lua54' {
+        sources = {
+            "lua/*.c",
+            "!lua/testes/*.c",
+            "!lua/ltests.c",
+            "!lua/onelua.c",
+            "!lua/lua.c",
+        },
+        defines = {
+            "_WIN32_WINNT=0x0601",
+            "LUA_BUILD_AS_DLL",
+        }
+    }
+    lm:executable 'lua' {
+        deps = "lua54",
+        defines = {
+            "_WIN32_WINNT=0x0601",
+        },
+        sources = {
+            "lua/lua.c",
+        },
+    }
+    lm:build "test" {
+        "$bin/lua.exe", "src/test.lua",
+        deps = {
+            "lua",
+            "ffi",
+            "ffi_test_cdecl",
+        }
+    }
+end
