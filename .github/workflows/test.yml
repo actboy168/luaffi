@@ -1,0 +1,17 @@
+name: test
+on: push
+jobs:
+  test:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86, x64]
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        ref: refs/heads/master
+    - uses: actboy168/setup-luamake@master
+      with:
+        arch: ${{ matrix.arch }}
+    - run: luamake
