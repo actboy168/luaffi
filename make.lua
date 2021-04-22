@@ -44,7 +44,7 @@ lm:shared_library "ffi_test_cdecl" {
     }
 }
 
-if lm.arch == "x86" then
+if lm.target == "x86" then
     lm:shared_library "ffi_test_stdcall" {
         sources = {
             "src/test.c",
@@ -65,48 +65,35 @@ if lm.arch == "x86" then
     }
 end
 
-local luamake_arch = string.packsize "T" == 8 and "x64" or "x86"
-if lm.arch == luamake_arch then
-    lm:build "test" {
-        "$luamake", "lua", "test.lua",
-        deps = {
-            "ffi",
-            "ffi_test_cdecl",
-            lm.arch == "x86" and "ffi_test_stdcall",
-            lm.arch == "x86" and "ffi_test_fastcall",
-        }
+lm:shared_library 'lua54' {
+    sources = {
+        "lua/*.c",
+        "!lua/testes/*.c",
+        "!lua/ltests.c",
+        "!lua/onelua.c",
+        "!lua/lua.c",
+    },
+    defines = {
+        "_WIN32_WINNT=0x0601",
+        "LUA_BUILD_AS_DLL",
     }
-else
-    lm:shared_library 'lua54' {
-        sources = {
-            "lua/*.c",
-            "!lua/testes/*.c",
-            "!lua/ltests.c",
-            "!lua/onelua.c",
-            "!lua/lua.c",
-        },
-        defines = {
-            "_WIN32_WINNT=0x0601",
-            "LUA_BUILD_AS_DLL",
-        }
+}
+lm:executable 'lua' {
+    deps = "lua54",
+    defines = {
+        "_WIN32_WINNT=0x0601",
+    },
+    sources = {
+        "lua/lua.c",
+    },
+}
+lm:build "test" {
+    "$bin/lua.exe", "src/test.lua",
+    deps = {
+        "lua",
+        "ffi",
+        "ffi_test_cdecl",
+        lm.target == "x86" and "ffi_test_stdcall",
+        lm.target == "x86" and "ffi_test_fastcall",
     }
-    lm:executable 'lua' {
-        deps = "lua54",
-        defines = {
-            "_WIN32_WINNT=0x0601",
-        },
-        sources = {
-            "lua/lua.c",
-        },
-    }
-    lm:build "test" {
-        "$bin/lua.exe", "src/test.lua",
-        deps = {
-            "lua",
-            "ffi",
-            "ffi_test_cdecl",
-            lm.arch == "x86" and "ffi_test_stdcall",
-            lm.arch == "x86" and "ffi_test_fastcall",
-        }
-    }
-end
+}
