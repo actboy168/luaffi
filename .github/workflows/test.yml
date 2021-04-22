@@ -8,10 +8,8 @@ jobs:
       matrix:
         arch: [x86, x64]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
-        ref: refs/heads/master
+        submodules : recursive
     - uses: actboy168/setup-luamake@master
-      with:
-        arch: ${{ matrix.arch }}
-    - run: luamake
+    - run: luamake -target ${{ matrix.arch }}
