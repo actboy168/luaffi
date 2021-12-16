@@ -44,7 +44,7 @@ lm:shared_library "ffi_test_cdecl" {
     }
 }
 
-if lm.target == "x86" then
+if lm.arch == "x86" then
     lm:shared_library "ffi_test_stdcall" {
         sources = {
             "src/test.c",
@@ -93,7 +93,7 @@ lm:build "test" {
         "lua",
         "ffi",
         "ffi_test_cdecl",
-        lm.target == "x86" and "ffi_test_stdcall",
-        lm.target == "x86" and "ffi_test_fastcall",
+        lm.arch == "x86" and "ffi_test_stdcall",
+        lm.arch == "x86" and "ffi_test_fastcall",
     }
 }
