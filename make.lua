@@ -27,40 +27,26 @@ lm:phony {
 }
 
 lm:lua_library "ffi" {
-    luaversion = "lua54",
     sources = {
         "src/*.c",
         "!src/test.c",
-    },
-    ldflags = "/EXPORT:luaopen_ffi"
+    }
 }
 
 lm:shared_library "ffi_test_cdecl" {
-    sources = {
-        "src/test.c",
-    },
-    defines = {
-        "_CRT_SECURE_NO_WARNINGS",
-    }
+    sources = "src/test.c",
+    defines = "_CRT_SECURE_NO_WARNINGS",
 }
 
 if lm.arch == "x86" then
     lm:shared_library "ffi_test_stdcall" {
-        sources = {
-            "src/test.c",
-        },
-        defines = {
-            "_CRT_SECURE_NO_WARNINGS",
-        },
+        sources = "src/test.c",
+        defines = "_CRT_SECURE_NO_WARNINGS",
         flags = "/Gz",
     }
     lm:shared_library "ffi_test_fastcall" {
-        sources = {
-            "src/test.c",
-        },
-        defines = {
-            "_CRT_SECURE_NO_WARNINGS",
-        },
+        sources = "src/test.c",
+        defines = "_CRT_SECURE_NO_WARNINGS",
         flags = "/Gr",
     }
 end
@@ -68,7 +54,6 @@ end
 lm:shared_library 'lua54' {
     sources = {
         "lua/*.c",
-        "!lua/testes/*.c",
         "!lua/ltests.c",
         "!lua/onelua.c",
         "!lua/lua.c",
@@ -80,12 +65,8 @@ lm:shared_library 'lua54' {
 }
 lm:executable 'lua' {
     deps = "lua54",
-    defines = {
-        "_WIN32_WINNT=0x0601",
-    },
-    sources = {
-        "lua/lua.c",
-    },
+    defines = "_WIN32_WINNT=0x0601",
+    sources = "lua/lua.c",
 }
 lm:build "test" {
     "$bin/lua.exe", "src/test.lua",

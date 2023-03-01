@@ -40,7 +40,11 @@ local function check(a, b, msg)
     if a ~= b then
         print('check', a, b)
     end
-    return _G.assert(a == b, msg)
+    if msg then
+        return _G.assert(a == b, msg)
+    else
+        return _G.assert(a == b)
+    end
 end
 
 print('Running test')

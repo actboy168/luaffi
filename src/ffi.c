@@ -1041,7 +1041,11 @@ static void set_value(lua_State* L, int idx, void* to, int to_usr, const struct 
         uint64_t val = check_uint64(L, idx);
         val &= (UINT64_C(1) << tt->bit_size) - 1;
         val <<= tt->bit_offset;
-        *(uint64_t*) to = val | (*(uint64_t*) to & (hi_mask | low_mask));
+
+        uint64_t data = 0;
+        memcpy(&data, to, tt->base_size);
+        data = val | (data & (hi_mask | low_mask));
+        memcpy(to, &data, tt->base_size);
 
     } else if (tt->type == STRUCT_TYPE || tt->type == UNION_TYPE) {
         set_struct(L, idx, to, to_usr, tt, check_pointers);
@@ -1783,10 +1787,10 @@ err:
         return 1;
 
     } else if (ct.is_bitfield) {
-
+        uint64_t val = 0;
+        memcpy(&val, data, ct.base_size);
         if (ct.type == INT64_TYPE) {
             struct ctype rt;
-            uint64_t val = *(uint64_t*) data;
             val >>= ct.bit_offset;
             val &= (UINT64_C(1) << ct.bit_size) - 1;
 
@@ -1802,12 +1806,10 @@ err:
             return 1;
 
         } else if (ct.type == BOOL_TYPE) {
-            uint64_t val = *(uint64_t*) data;
             lua_pushboolean(L, (int) (val & (UINT64_C(1) << ct.bit_offset)));
             return 1;
 
         } else {
-            uint64_t val = *(uint64_t*) data;
             val >>= ct.bit_offset;
             val &= (UINT64_C(1) << ct.bit_size) - 1;
             lua_pushinteger(L, val);
