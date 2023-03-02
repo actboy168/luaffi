@@ -1,2 +1,2 @@
-package.cpath = "build/msvc/bin/?.dll"
+package.cpath = "build/bin/?.dll"
 dofile "src/test.lua"
