@@ -465,8 +465,8 @@ int x86_return_size(lua_State* L, int usr, const struct ctype* ct)
     lua_pop(L, 1);
 #endif
     if (ct->calling_convention == FAST_CALL) {
-        if (ret > 8) {
-            ret -=8;
+        if (ret > REGISTER_STACK_SPACE(ct)) {
+            ret -=REGISTER_STACK_SPACE(ct);
         }  else {
             ret = 0;
         }
