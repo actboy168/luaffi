@@ -4,12 +4,15 @@ lm.arch = "x86"
 --lm.mode = "debug"
 
 local function dynasm(output, input, flags)
-    lm:build ("dynasm_"..output) {
-        "$luamake", "lua", "src/dynasm/dynasm.lua",
-        "-LNE",
-        flags or {},
-        "-o", "src/"..output,
-        "src/"..input,
+    lm:runlua ("dynasm_"..output) {
+        script = "src/dynasm/dynasm.lua",
+        args = {
+            "-LNE",
+            flags or {},
+            "-o", "$out",
+            "$in",
+        },
+        input = "src/"..input,
         output = "src/"..output,
     }
 end
