@@ -1743,6 +1743,11 @@ static struct ctype* parse_argument2(lua_State* L, struct parser* P, int ct_usr,
             /* ignored for now */
 
         } else {
+            if (name->size) {
+                lua_pushlstring(L, tok.str, tok.size);
+                lua_pushlstring(L, name->str, name->size);
+                luaL_error(L, "unexpected token '%s' after declaration of '%s' on line %d", lua_tostring(L, -2), lua_tostring(L, -1), P->line);
+            }
             *name = tok;
         }
     }
@@ -2035,7 +2040,7 @@ static void parse_constant_assignemnt(lua_State* L,
     }
 
     lua_rawset(L, -3);
-    lua_pop(L, 2); /*constants and type*/
+    lua_pop(L, 1); /*constants*/
 }
 
 #define END 0
@@ -2152,6 +2157,9 @@ static int parse_root(lua_State* L, struct parser* P)
                 lua_pop(L, 1);
 
                 if (!next_token(L, P, &tok)) {
+                    if (name.size) {
+                        luaL_error(L, "missing semicolon on line %d", P->line);
+                    }
                     break;
                 }
 
