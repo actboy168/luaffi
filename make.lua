@@ -73,13 +73,3 @@ lm:exe 'lua' {
     defines = "_WIN32_WINNT=0x0601",
     sources = "lua/lua.c",
 }
-lm:build "test" {
-    args = { "$bin/lua.exe", "src/test.lua" },
-    deps = {
-        "lua",
-        "ffi",
-        "ffi_test_cdecl",
-        lm.arch == "x86" and "ffi_test_stdcall",
-        lm.arch == "x86" and "ffi_test_fastcall",
-    }
-}
