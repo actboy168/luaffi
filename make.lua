@@ -40,7 +40,7 @@ lm:lua_dll "ffi" {
 
 lm:dll "ffi_test_cdecl" {
     sources = "src/test.c",
-    defines = "_CRT_SECURE_NO_WARNINGS",
+    defines = lm.os == "windows" and "_CRT_SECURE_NO_WARNINGS" or {},
 }
 
 if lm.arch == "x86" then
@@ -56,20 +56,53 @@ if lm.arch == "x86" then
     }
 end
 
-lm:dll 'lua55' {
-    sources = {
-        "lua/*.c",
-        "!lua/ltests.c",
-        "!lua/onelua.c",
-        "!lua/lua.c",
-    },
-    defines = {
-        "_WIN32_WINNT=0x0601",
-        "LUA_BUILD_AS_DLL",
+if lm.os == "windows" then
+    lm:dll 'lua55' {
+        sources = {
+            "lua/*.c",
+            "!lua/ltests.c",
+            "!lua/onelua.c",
+            "!lua/lua.c",
+        },
+        defines = {
+            "_WIN32_WINNT=0x0601",
+            "LUA_BUILD_AS_DLL",
+        }
+    }
+    lm:exe 'lua' {
+        deps = "lua55",
+        defines = "_WIN32_WINNT=0x0601",
+        sources = "lua/lua.c",
+    }
+else
+    lm:exe 'lua' {
+        sources = {
+            "lua/*.c",
+            "!lua/ltests.c",
+            "!lua/onelua.c",
+        },
+        visibility = "default",
+        linux = {
+            defines = "LUA_USE_LINUX",
+            ldflags = "-Wl,-E",
+            links = { "m", "dl" }
+        },
+    }
+end
+
+local EXE = lm.os == "windows" and ".exe" or ""
+
+lm:build "runtest" {
+    args = { "$bin/lua"..EXE, "test.lua" },
+    deps = {
+        "lua",
+        "ffi",
+        "ffi_test_cdecl",
+        lm.arch == "x86" and "ffi_test_stdcall",
+        lm.arch == "x86" and "ffi_test_fastcall",
     }
 }
-lm:exe 'lua' {
-    deps = "lua55",
-    defines = "_WIN32_WINNT=0x0601",
-    sources = "lua/lua.c",
+
+lm:default {
+    "ffi",
 }

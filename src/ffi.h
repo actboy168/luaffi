@@ -354,15 +354,8 @@ struct ctype {
     unsigned is_unsigned : 1;
 };
 
-#ifdef _MSC_VER
-__declspec(align(16))
-#endif
 struct cdata {
-    const struct ctype type
-#ifdef __GNUC__
-      __attribute__ ((aligned(16)))
-#endif
-      ;
+    const struct ctype type;
 };
 
 typedef void (*cfunction)(void);

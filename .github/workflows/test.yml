@@ -1,15 +1,25 @@
 name: test
 on: push
 jobs:
-  test:
+  windows:
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         arch: [x86, x86_64]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
-        submodules : recursive
+        submodules: recursive
     - uses: actboy168/setup-luamake@master
     - run: luamake -arch ${{ matrix.arch }}
+    - run: luamake runtest -arch ${{ matrix.arch }}
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: actboy168/setup-luamake@master
+    - run: luamake
+    - run: luamake runtest

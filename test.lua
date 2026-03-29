@@ -6,6 +6,13 @@
 -- LICENSE file in the root directory of this source tree. An additional grant
 -- of patent rights can be found in the PATENTS file in the same directory.
 --
+
+if package.cpath:match "%?%.so" then
+    package.cpath = 'build/bin/?.so'
+else
+    package.cpath = 'build/bin/?.dll'
+end
+
 io.stdout:setvbuf('no')
 local ffi = require 'ffi'
 local dlls = {}
