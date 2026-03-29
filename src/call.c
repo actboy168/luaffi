@@ -209,6 +209,33 @@ static void* reserve_code(struct jit* jit, lua_State* L, size_t sz)
         page->freed = page->off;
         lua_pop(L, 1);
 
+#ifdef _WIN64
+        /* Register unwind info for the JIT code page so that longjmp/RtlUnwindEx
+         * can correctly unwind through JIT-generated code frames.
+         * All JIT functions use the same prolog: push rbp; mov rbp, rsp
+         */
+        {
+            /* UNWIND_INFO for: push rbp (1 byte); mov rbp, rsp (3 bytes) */
+            uint8_t* ui = page->unwind_info;
+            ui[0] = 0x01;  /* Version=1, Flags=UNW_FLAG_NHANDLER(0) */
+            ui[1] = 0x04;  /* SizeOfProlog = 4 */
+            ui[2] = 0x02;  /* CountOfCodes = 2 */
+            ui[3] = 0x05;  /* FrameRegister=RBP(5), FrameOffset=0 */
+            /* UnwindCode[0]: UWOP_SET_FPREG at offset 4 */
+            ui[4] = 0x04;  /* CodeOffset = 4 */
+            ui[5] = 0x03;  /* UnwindOp=UWOP_SET_FPREG(3), OpInfo=0 */
+            /* UnwindCode[1]: UWOP_PUSH_NONVOL(RBP) at offset 1 */
+            ui[6] = 0x01;  /* CodeOffset = 1 */
+            ui[7] = 0x50;  /* UnwindOp=UWOP_PUSH_NONVOL(0), OpInfo=RBP(5) */
+
+            page->func_table.BeginAddress = (DWORD)(page->off);  /* start of code area */
+            page->func_table.EndAddress = (DWORD)(page->size);   /* end of page */
+            page->func_table.UnwindInfoAddress = (DWORD)((uint8_t*)page->unwind_info - (uint8_t*)page);
+
+            RtlAddFunctionTable(&page->func_table, 1, (DWORD64)page);
+        }
+#endif
+
     } else {
         page = jit->pages[jit->pagenum-1];
         EnableWrite(page, page->size);
@@ -263,6 +290,9 @@ void free_code(struct jit* jit, lua_State* L, cfunction func)
             return;
         }
 
+#ifdef _WIN64
+        RtlDeleteFunctionTable(&p->func_table);
+#endif
         FreePage(p, p->size);
         memmove(&jit->pages[i], &jit->pages[i+1], (jit->pagenum - (i+1)) * sizeof(jit->pages[0]));
         jit->pagenum--;

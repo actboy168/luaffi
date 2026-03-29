@@ -201,6 +201,10 @@ struct page {
     size_t size;
     size_t off;
     size_t freed;
+#ifdef _WIN64
+    RUNTIME_FUNCTION func_table;
+    uint8_t unwind_info[8]; /* UNWIND_INFO for push rbp; mov rbp, rsp */
+#endif
 };
 
 struct jit {

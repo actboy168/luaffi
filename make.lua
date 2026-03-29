@@ -1,6 +1,5 @@
 local lm = require "luamake"
 
-lm.arch = "x86"
 --lm.mode = "debug"
 
 local function dynasm(output, input, flags)
