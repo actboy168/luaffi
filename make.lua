@@ -57,7 +57,7 @@ if lm.arch == "x86" then
     }
 end
 
-lm:dll 'lua54' {
+lm:dll 'lua55' {
     sources = {
         "lua/*.c",
         "!lua/ltests.c",
@@ -70,7 +70,7 @@ lm:dll 'lua54' {
     }
 }
 lm:exe 'lua' {
-    deps = "lua54",
+    deps = "lua55",
     defines = "_WIN32_WINNT=0x0601",
     sources = "lua/lua.c",
 }
